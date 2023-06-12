@@ -1,0 +1,33 @@
+parameters:
+    version: '1.0'
+
+services:
+    _defaults:
+        public: true
+        autowire: true
+        autoconfigure: true
+        bind:
+            string $version: '%version%'
+            $config: '%config%'
+
+    _instanceof:
+        Symfony\Component\Console\Command\Command:
+            tags: ['command']
+
+    TelegramBot\Application:
+        arguments:
+            - !tagged command
+
+    TelegramBot\Telegram\Client:
+        arguments:
+            - '%bot_token%'
+
+    TelegramBot\Command\CheckFeedCommand:
+
+    TelegramBot\Service\FeedReaderService:
+
+    TelegramBot\Telegram\ChatFactory:
+
+    TelegramBot\Feed\FeedFactory:
+
+    TelegramBot\Cache\Client:

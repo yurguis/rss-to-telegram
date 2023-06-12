@@ -1,0 +1,33 @@
+{
+    "name": "yurguis/telegram-bot",
+    "description": "Telegram Bot Handler in PHP",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Yurguis Garcia",
+            "email": "yurguis@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=8.2.7",
+        "ext-memcached": "*",
+        "laminas/laminas-feed": "^2.20",
+        "symfony/cache": "^6.3",
+        "symfony/config": "^6.3",
+        "symfony/console": "^6.3",
+        "symfony/dependency-injection": "^6.3",
+        "symfony/dotenv": "^6.3",
+        "symfony/http-client": "^6.3",
+        "symfony/var-dumper": "^6.3",
+        "symfony/yaml": "^6.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "TelegramBot\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

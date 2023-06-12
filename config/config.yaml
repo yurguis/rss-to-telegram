@@ -1,0 +1,28 @@
+config:
+    cache:
+        adapter: memcached
+        provider: memcached://127.0.0.1
+        namespace: telegram-bot
+        default_lifetime: 3600
+    telegram:
+        channel_name1:
+          chat_id: 1
+          topic_id: 2
+        channel_name2:
+          chat_id: 3
+    feeds:
+        feed_1:
+            url: https://www.example.com/feed1
+            keyword:
+                title:
+                    - feed1_title
+            message:
+                - channel_name1
+                - channel_name2
+        feed_2:
+            url: https://www.example.com/feed2
+            keyword:
+                description:
+                    - feed_2
+            message:
+                - channel_name2

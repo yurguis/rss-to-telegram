@@ -1,0 +1,51 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__."/../vendor/autoload.php";
+
+use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\Yaml\Yaml;
+use TelegramBot\Application;
+use TelegramBot\Config\Configuration;
+
+$processor = new Processor();
+$configuration = new Configuration();
+
+$config = Yaml::parseFile(dirname(__DIR__) . "/config/config.yaml");
+
+$processedConfiguration = $processor->processConfiguration(
+    $configuration,
+    $config
+);
+
+$container = new ContainerBuilder();
+
+$container->setParameter('root_dir', dirname(__DIR__));
+$container->setParameter('config', $processedConfiguration);
+
+// Load env
+$dotenv = new Dotenv();
+$dotenv->loadEnv(__DIR__."/../.env");
+
+foreach ($_ENV as $key => $value) {
+    if ($key === 'SYMFONY_DOTENV_VARS') {
+        continue;
+    }
+
+    $container->setParameter(strtolower($key), $value);
+}
+
+$loader = new YamlFileLoader($container, new FileLocator());
+$loader->load(__DIR__.'/../config/services.yaml');
+
+$container->compile();
+
+try {
+    $container->get(Application::class)->run();
+} catch (Exception $e) {
+    throw new RuntimeException($e->getMessage());
+}
