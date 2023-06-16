@@ -16,6 +16,7 @@ use TelegramBot\Cache\Client as CacheClient;
 use TelegramBot\Feed\Client as FeedClient;
 use TelegramBot\Feed\Feed;
 use TelegramBot\Feed\FeedFactory;
+use TelegramBot\Feed\KeywordMatchItems;
 use TelegramBot\Telegram\Client as TelegramClient;
 use TelegramBot\Telegram\Message;
 use TelegramBot\Telegram\ChatFactory;
@@ -26,6 +27,7 @@ class FeedReaderService
     protected FeedFactory $feedFactory;
     protected ChatFactory $chatFactory;
     protected AdapterInterface $cacheAdapter;
+    private string $feedName;
 
     public function __construct(
         TelegramClient $telegramClient,
@@ -58,6 +60,8 @@ class FeedReaderService
             $feed = [$feed];
         }
 
+        $this->feedName = $name;
+
         foreach ($feed as $item) {
             $this->handleFeed($item);
         }
@@ -85,19 +89,31 @@ class FeedReaderService
 
         $reader = Reader::importString($cacheItem->get());
 
+        $keywordFields = $feed->getKeyword()->fields();
+
         foreach ($reader as $entry) {
-            if (false === $feed->getKeyword()->matches($entry->getTitle(), $entry->getDescription())) {
+            $keywordMatchItems = new KeywordMatchItems();
+            foreach ($keywordFields as $field) {
+                if (!method_exists($entry, 'get'.ucfirst($field))) {
+                    continue;
+                }
+
+                $keywordMatchItems->add($field, $entry->{'get'.ucfirst($field)}());
+            }
+
+            $keywordMatchResult = $feed->getKeyword()->matches($keywordMatchItems);
+            if (false === $keywordMatchResult->isMatch()) {
                 continue;
             }
 
-            $cacheKey = "entry-{$entry->getId()}";
+            $cacheKey  = "last_entry_{$this->feedName}_{$keywordMatchResult->getKeyword()}";
             $cacheItem = $this->cacheAdapter->getItem($cacheKey);
-            if ($cacheItem->isHit()) {
+            if ($cacheItem->isHit() && ($cacheItem->get() >= $entry->getId())) {
                 continue;
             }
 
             $cacheItem->set($entry->getId());
-            $cacheItem->expiresAfter(3600); // 1 hr
+            $cacheItem->expiresAfter(null); // Cache this item forever
 
             $this->cacheAdapter->save($cacheItem);
 

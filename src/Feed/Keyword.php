@@ -7,30 +7,32 @@ namespace TelegramBot\Feed;
 
 class Keyword
 {
-    protected array $title;
-    protected array $description;
+    protected array $keywords;
 
-    public function __construct(array $keyword = [])
+    public function __construct(array $keywords = [])
     {
-        $this->title = $keyword['title'] ?? [];
-        $this->description = $keyword['description'] ?? [];
+        $this->keywords = $keywords;
     }
 
-    public function matches(string $title, string $description): bool
+    public function fields(): array
     {
-        foreach ($this->title as $keyword) {
-            if (false !== strpos($title, $keyword)) {
-                return true;
+        return array_keys($this->keywords);
+    }
+
+    public function matches(KeywordMatchItems $matchItems): KeywordMatchResult
+    {
+        $result = new KeywordMatchResult();
+
+        foreach ($this->keywords as $key => $keyword) {
+            foreach ($keyword as $item) {
+                if (str_contains($matchItems->get($key), $item)) {
+                    $result->setKeyword($item);
+                    break 2;
+                }
             }
         }
 
-        foreach ($this->description as $keyword) {
-            if (false !== strpos($description, $keyword)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $result;
     }
 
 }
